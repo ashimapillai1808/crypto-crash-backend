@@ -1,110 +1,79 @@
-Here is your **complete `README.md` content** for the **Crypto Crash Game Backend** — ready to copy-paste directly into your GitHub:
+
+````markdown
+# 🚀 Crypto Crash Game Backend
+
+A real-time multiplayer **Crash Game** backend built using **Node.js**, **Express.js**, **MongoDB**, and **Socket.IO**, with live crypto price integration from **CoinGecko API**.
+
+Players bet in USD, watch a multiplier rise, and try to cash out before the game crashes. If they fail, they lose their bet.
 
 ---
 
-```markdown
-# 🚀 Crypto Crash Game - Backend
+## 🧱 Tech Stack
 
-A multiplayer **Crash game** built using **Node.js**, **Express**, **MongoDB**, and **Socket.IO**, with real-time cryptocurrency integration using CoinGecko API. Players bet in USD, which is converted to crypto (BTC/ETH), and try to cash out before the multiplier crashes!
-
----
-
-## 🛠 Tech Stack
-
-- **Backend**: Node.js, Express.js
-- **Database**: MongoDB (NoSQL)
-- **Real-Time**: WebSocket using Socket.IO
-- **Crypto Price API**: CoinGecko
-- **Frontend (Demo)**: HTML + JavaScript (Socket.IO Client)
-
----
-
-## 📂 Project Structure
-
-```
-
-crypto-crash-backend/
-├── routes/         # API Routes (wallet, bet, cashout, history)
-├── models/         # Mongoose models (Player, Bet, GameRound)
-├── sockets/        # Socket.IO game loop (real-time multiplier)
-├── utils/          # Helpers (priceFetcher.js)
-├── public/         # Static HTML file (index.html for test)
-├── server.js       # Main server entry
-├── .env            # Environment config
-└── README.md       # This file
-
-````
+- **Backend:** Node.js, Express.js
+- **Database:** MongoDB (NoSQL)
+- **Real-Time:** Socket.IO (WebSocket)
+- **Crypto API:** CoinGecko (real-time BTC/ETH prices)
+- **Frontend:** Simple HTML (for testing WebSocket functionality)
 
 ---
 
 ## ⚙️ Setup Instructions
 
-1. Clone the repository:
-
+### 1. Clone the Repository
 ```bash
 git clone https://github.com/your-username/crypto-crash-backend.git
 cd crypto-crash-backend
 ````
 
-2. Install dependencies:
+### 2. Install Dependencies
 
 ```bash
 npm install
 ```
 
-3. Create `.env` file:
+### 3. Configure Environment Variables
+
+Create a `.env` file in the root:
 
 ```env
 PORT=3000
 MONGO_URI=mongodb://localhost:27017/crypto-crash
 ```
 
-4. Start the server:
+### 4. Start the Server
 
 ```bash
 node server.js
 ```
 
+Server will run at: [http://localhost:3000](http://localhost:3000)
+
 ---
 
-## 🌐 API Endpoints
+## 📦 API Endpoints
 
-### ✅ POST `/wallet/create`
+### 🔐 `POST /wallet/create`
 
 Create a new player wallet.
 
-**Request:**
-
-```json
-{ "username": "ashima" }
-```
-
----
-
-### 📈 GET `/wallet/:username`
-
-Returns crypto + USD balance.
-
-**Response:**
-
 ```json
 {
-  "BTC": 0.002,
-  "ETH": 0.1,
-  "USD": {
-    "BTC": 130,
-    "ETH": 250
-  }
+  "username": "ashima"
 }
 ```
 
 ---
 
-### 🎯 POST `/bet`
+### 💰 `GET /wallet/:username`
 
-Place a bet in USD (converted to BTC/ETH).
+Get crypto + USD equivalent balances.
 
-**Request:**
+---
+
+### 🎯 `POST /bet`
+
+Place a USD bet, converted to crypto.
 
 ```json
 {
@@ -117,177 +86,105 @@ Place a bet in USD (converted to BTC/ETH).
 
 ---
 
-### 💸 POST `/cashout`
+### 💸 `POST /cashout`
 
-Cash out an active bet during the round.
-
-**Request:**
+Cash out before crash.
 
 ```json
 {
   "username": "ashima",
   "roundId": "round_1",
-  "multiplier": 2.3
+  "multiplier": 2.5
 }
 ```
 
 ---
 
-### 🕓 GET `/history`
+### 📜 `GET /history`
 
-Fetches recent game rounds from DB.
-
-**Response:**
-
-```json
-[
-  {
-    "roundId": "round_10",
-    "crashPoint": 2.45,
-    "startTime": "...",
-    "endTime": "..."
-  }
-]
-```
+Get list of previous game rounds.
 
 ---
 
-## 📡 WebSocket Events (via Socket.IO)
+## 📡 WebSocket Events (`Socket.IO`)
 
-Connect using the Socket.IO client (`public/index.html` demo).
-
-### 🔄 `newRound`
-
-Fired at the start of each round.
-
-```json
-{
-  "roundId": "round_1",
-  "crashPoint": "4.2",
-  "message": "🟢 New round 1 started. Crash at ?"
-}
-```
+| Event Name         | Description                      |
+| ------------------ | -------------------------------- |
+| `newRound`         | Notifies when a new round starts |
+| `multiplierUpdate` | Sends multiplier every 100ms     |
+| `roundEnd`         | Indicates when round crashes     |
 
 ---
 
-### 📊 `multiplierUpdate`
+## 🧮 Crash Algorithm – Provably Fair
 
-Fired every 100ms with updated multiplier.
-
-```json
-{
-  "multiplier": "2.73"
-}
-```
-
----
-
-### 💥 `roundEnd`
-
-Emitted when the round crashes.
-
-```json
-{
-  "roundId": "round_1",
-  "crashPoint": "4.2",
-  "message": "💥 Crashed at 4.2x"
-}
-```
-
----
-
-## 🔐 Provably Fair Crash Algorithm
-
-Each crash point is generated using:
+Each round's crash point is generated using:
 
 ```js
-const seed = Math.random().toString(36).substring(2);
-const hash = crypto.createHash('sha256').update(seed + roundNumber).digest('hex');
-const crash = 1.1 + (parseInt(hash.substring(0, 8), 16) % 119) / 10;
+const hash = sha256(seed + roundNumber);
+const crashPoint = 1.1 + (parseInt(hash.slice(0, 8), 16) % 119) / 10;
 ```
 
-* ✅ Hash-based
-* ✅ Verifiable & Transparent
-* ✅ Random yet fair
+* 🎲 Random but verifiable
+* 🔒 Cryptographically secure
+* ⚖️ Fair and transparent
 
 ---
 
-## 💹 USD to Crypto Conversion Logic
+## 💱 USD ↔ Crypto Conversion
 
-* Real-time price fetched via **CoinGecko API**
-* Cached every **10 seconds**
+* Prices fetched from **CoinGecko API**
+* Price cached for 10s to avoid rate limits
 * Example:
-
-  * `$10 / $60,000 (BTC) = 0.000166 BTC`
-  * If cashed out at `2x`: `0.000332 BTC * 60,000 = $20`
+  `$10 / $60,000 (BTC) = 0.000166 BTC`
 
 ---
 
-## 🧪 Postman Testing
+## 💾 Sample MongoDB Collections
 
-Import this collection manually:
-
-```json
-// Sample request
-POST /wallet/create
-{
-  "username": "ashima"
-}
-```
-
-Create wallet → Place bet → Cash out → View history.
+* `players`: `{ username, wallet: { BTC, ETH } }`
+* `bets`: bet details, cashout status, roundId
+* `gamerounds`: round history, crash point, timestamps
 
 ---
 
-## 🖥️ Frontend Demo (index.html)
+## 🖥️ Frontend Demo (`public/index.html`)
 
-Preview real-time crash game by opening:
+Simple HTML file to:
 
-```
-public/index.html
-```
-
-* Multiplier updates in real-time
-* Button to test cashout during round
+* View real-time multiplier
+* Click to cash out
+* Display crash point and round status
 
 ---
 
-## 🔐 Security Highlights
+## ✅ Features Implemented
 
-* Input validation (no negative bets, null values)
-* Rate-limited price fetch (10s cache)
-* Atomic wallet updates to avoid race conditions
-* Uses cryptographically secure randomness for fairness
-
----
-
-## 🧾 Sample DB Collections
-
-* **players**: username, wallet `{ BTC, ETH }`
-* **bets**: bet details, cashedOut, multiplierAtCashout
-* **gamerounds**: roundId, crashPoint, startTime, endTime
+* [x] Crash Game Logic
+* [x] Real-time Crypto Prices
+* [x] Socket.IO Multiplayer
+* [x] Provably Fair Algorithm
+* [x] MongoDB Integration
+* [x] WebSocket Client (Test UI)
+* [x] Postman Support
+* [x] Full CRUD APIs
 
 ---
 
-## 📈 Future Improvements (Optional)
+## ✨ Future Enhancements
 
-* User authentication (JWT)
-* Admin dashboard for controlling crash points
-* Real blockchain interaction
-* Leaderboard, chat, advanced game logic
+* 🔐 JWT Authentication
+* 💬 Live Player Chat
+* 📊 Leaderboard
+* 💵 Real blockchain wallet integration
+* 🖼️ UI with React or Vue.js
 
 ---
 
-## 👩‍💻 Author
+## 👩‍💻 Developed By
 
 **Ashima Pillai**
-[GitHub](https://github.com/ashimapillai1808)
+GitHub: [@ashimapillai1808](https://github.com/ashimapillai1808)
 
 ---
-
-## 📄 License
-
-MIT License
-
-```
 
